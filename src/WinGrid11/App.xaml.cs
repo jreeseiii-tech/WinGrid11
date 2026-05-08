@@ -68,7 +68,7 @@ public partial class App : Application
         var elevated = IsRunningElevated();
         _tray = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = TrayIconFactory.Create(),
             Text = $"WinGrid11 - {_settings.Columns}×{_settings.Rows} grid"
                    + (elevated ? " (admin)" : ""),
             Visible = true,
@@ -246,7 +246,14 @@ public partial class App : Application
 
     private void OnExit(object sender, ExitEventArgs e)
     {
-        _tray?.Dispose();
+        if (_tray is not null)
+        {
+            // NotifyIcon doesn't dispose the assigned Icon for us;
+            // grab it before Dispose nulls it out.
+            var icon = _tray.Icon;
+            _tray.Dispose();
+            icon?.Dispose();
+        }
         _engine?.Dispose();
         _overlayManager?.Dispose();
         _dragWatcher?.Dispose();
