@@ -6,6 +6,8 @@ Dynamic grid-based window snapping for Windows 11. Spiritual successor to [Windo
 
 This is a (largely) vibe coded app based on the old WindowGrid functions that don't consitently work these days.
 
+**It is recommended that you DISABLE window snap groups in Windows settings.**
+
 ## What does it do??
 
 You hold left-click on a window's title bar like you're about to drag it. While still holding, you tap right-click. A grid pops up over every monitor. You drag from one corner of the rectangle you want to the other corner. You release left-click. The window snaps to that rectangle.
