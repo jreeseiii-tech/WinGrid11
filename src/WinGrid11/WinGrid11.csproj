@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace>WinGrid11</RootNamespace>
+    <AssemblyName>WinGrid11</AssemblyName>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <!-- WFAC010 wants DPI mode out of the manifest, but WPF reads it from there.
+         Both settings agree (PerMonitorV2), so the warning is noise here. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+
+    <!-- Version. Bump here to release a new installer; build-installer.ps1
+         picks this up automatically and embeds it into both the binary
+         (AssemblyVersion / FileVersion / InformationalVersion) and the
+         Inno Setup output filename. -->
+    <Version>0.2.0</Version>
+    <Product>WinGrid11</Product>
+    <Authors>WinGrid11</Authors>
+    <Company>WinGrid11</Company>
+    <AssemblyTitle>WinGrid11</AssemblyTitle>
+  </PropertyGroup>
+
+</Project>

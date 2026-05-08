@@ -1,0 +1,42 @@
+<!--
+    Background uses alpha=1 (#01000000) rather than fully transparent on
+    purpose. With AllowsTransparency=True, WPF presents the window via
+    UpdateLayeredWindow with per-pixel alpha, and the OS hit-tests pixels
+    with alpha=0 as transparent - events fall through. The 2px gaps
+    between grid cells would otherwise be hit-test holes that let the
+    cursor interact with apps below the overlay. A single bit of alpha
+    over the whole window is visually imperceptible but makes the gaps
+    hit-test-opaque at the OS level. Don't change this back to "Transparent".
+-->
+<Window x:Class="WinGrid11.Overlay.GridOverlayWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        AllowsTransparency="True"
+        Background="#01000000"
+        Topmost="True"
+        Focusable="False"
+        IsHitTestVisible="False"
+        ShowActivated="False"
+        WindowStartupLocation="Manual"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <Grid>
+        <Grid x:Name="RootGrid" />
+        <!--
+            Free-resize preview layer. Hidden in grid mode. The Rectangle is
+            positioned in DIP coords by GridOverlayWindow.SetFreePreview;
+            Canvas gives us absolute placement without disturbing the cell
+            grid's star-sized layout.
+        -->
+        <Canvas x:Name="FreeLayer" IsHitTestVisible="False" Visibility="Collapsed">
+            <Rectangle x:Name="FreePreview"
+                       StrokeThickness="2"
+                       RadiusX="4"
+                       RadiusY="4" />
+        </Canvas>
+    </Grid>
+</Window>
