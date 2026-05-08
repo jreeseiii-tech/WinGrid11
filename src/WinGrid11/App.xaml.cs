@@ -22,9 +22,25 @@ public partial class App : Application
     private OverlayManager? _overlayManager;
     private GestureEngine? _engine;
     private NotifyIcon? _tray;
+    private SingleInstanceCoordinator? _singleInstance;
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
+        // First gate: only one WinGrid11 per session. A second launch
+        // (Start Menu shortcut while autostart already brought us up,
+        // installer post-install launch, etc.) pings the running
+        // instance to surface its settings window, then exits here
+        // before any hooks or tray icons are created.
+        _singleInstance = new SingleInstanceCoordinator();
+        if (!_singleInstance.TryAcquire())
+        {
+            SingleInstanceCoordinator.NudgeExistingInstance();
+            _singleInstance.Dispose();
+            _singleInstance = null;
+            Shutdown();
+            return;
+        }
+
         _settings = Settings.Load();
 
         _mouseHook = new LowLevelMouseHook();
@@ -42,6 +58,12 @@ public partial class App : Application
 
         _mouseHook.Install();
         _dragWatcher.Start();
+
+        // Listen for "second-instance launched" pings from the named
+        // pipe and pop the settings window in response. Marshal off
+        // the worker thread that delivers the event.
+        _singleInstance.ActivationRequested += () => Dispatcher.BeginInvoke(ShowSettingsWindow);
+        _singleInstance.StartServer();
 
         var elevated = IsRunningElevated();
         _tray = new NotifyIcon
@@ -84,6 +106,11 @@ public partial class App : Application
         var path = Environment.ProcessPath;
         if (string.IsNullOrEmpty(path)) return;
 
+        // Hand the single-instance lock off to the elevated child.
+        // Without this the child would race against our own mutex and
+        // mistake its parent for a competing process.
+        bool releasedForHandoff = _singleInstance?.ReleaseForHandoff() ?? false;
+
         try
         {
             Process.Start(new ProcessStartInfo
@@ -97,7 +124,9 @@ public partial class App : Application
         catch
         {
             // User declined the UAC prompt, or shell launch failed.
-            // Stay running as current user - nothing changed.
+            // Stay running as current user - reclaim the mutex so
+            // future second-launch attempts still bounce off us.
+            if (releasedForHandoff) _singleInstance?.ReacquireAfterFailedHandoff();
             return;
         }
 
@@ -223,5 +252,6 @@ public partial class App : Application
         _dragWatcher?.Dispose();
         _panicHotKey?.Dispose();
         _mouseHook?.Dispose();
+        _singleInstance?.Dispose();
     }
 }
