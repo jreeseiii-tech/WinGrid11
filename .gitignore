@@ -3,6 +3,7 @@ obj/
 
 publish/
 dist/
+tools/
 
 .vs/
 .idea/
