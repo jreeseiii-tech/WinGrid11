@@ -23,7 +23,7 @@
          picks this up automatically and embeds it into both the binary
          (AssemblyVersion / FileVersion / InformationalVersion) and the
          Inno Setup output filename. -->
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <Product>WinGrid11</Product>
     <Authors>WinGrid11</Authors>
     <Company>WinGrid11</Company>
