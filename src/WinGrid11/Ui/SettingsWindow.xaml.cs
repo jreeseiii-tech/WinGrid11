@@ -233,8 +233,6 @@ internal partial class SettingsWindow : Window
 
     private void OnExitClick(object sender, RoutedEventArgs e) => _exitApp();
 
-    private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
-
     private void OnHyperlinkNavigate(object sender, RequestNavigateEventArgs e)
     {
         try
