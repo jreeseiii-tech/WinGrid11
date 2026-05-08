@@ -2,9 +2,19 @@ using WinGrid11.Win32;
 
 namespace WinGrid11.Display;
 
+/// <summary>
+/// Per-monitor metrics used by the gesture and overlay layers.
+/// PhysicalBounds is the full monitor in physical pixels; WorkArea is
+/// the same minus the taskbar and any other appbars. The grid is
+/// laid out in WorkArea so snaps don't tuck windows under the
+/// taskbar; PhysicalBounds is still used to resolve which monitor
+/// the cursor is on (so a cursor hovering over the taskbar keeps
+/// the gesture alive on the right monitor).
+/// </summary>
 internal readonly record struct MonitorInfo(
     IntPtr Handle,
     Native.RECT PhysicalBounds,
+    Native.RECT WorkArea,
     uint DpiX,
     uint DpiY)
 {
@@ -34,6 +44,7 @@ internal static class MonitorService
             list.Add(new MonitorInfo(
                 hMon,
                 mi.rcMonitor,
+                mi.rcWork,
                 dpiX,
                 dpiY));
 

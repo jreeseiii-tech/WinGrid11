@@ -235,8 +235,13 @@ internal sealed class GestureEngine : IDisposable
 
         if (_freeMode)
         {
-            _freeStart = (x, y);
-            _freeEnd = (x, y);
+            // Clamp to WorkArea so a gesture started over the taskbar
+            // anchors at the work area edge instead of behind it.
+            var wa = overlay.Monitor.WorkArea;
+            int sx = Math.Clamp(x, wa.Left, wa.Right - 1);
+            int sy = Math.Clamp(y, wa.Top, wa.Bottom - 1);
+            _freeStart = (sx, sy);
+            _freeEnd = (sx, sy);
         }
         else
         {
@@ -364,12 +369,19 @@ internal sealed class GestureEngine : IDisposable
             _activeOverlay?.Clear();
             _activeOverlay = newOverlay;
             newOverlay.EnterFreeMode();
-            _freeStart = (x, y);
+            // Anchor at the cursor clamped into the new monitor's work
+            // area so a re-anchor over a taskbar maps to the edge.
+            var nwa = newOverlay.Monitor.WorkArea;
+            _freeStart = (Math.Clamp(x, nwa.Left, nwa.Right - 1),
+                          Math.Clamp(y, nwa.Top, nwa.Bottom - 1));
         }
 
         var overlay = _activeOverlay;
         if (overlay is null) return;
-        var b = overlay.Monitor.PhysicalBounds;
+        // Clamp to WorkArea, not PhysicalBounds, so the free-resize
+        // rect can't extend behind the taskbar even when the cursor
+        // wanders into it.
+        var b = overlay.Monitor.WorkArea;
         int cx = Math.Clamp(x, b.Left, b.Right - 1);
         int cy = Math.Clamp(y, b.Top, b.Bottom - 1);
         _freeEnd = (cx, cy);

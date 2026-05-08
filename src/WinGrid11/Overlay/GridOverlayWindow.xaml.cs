@@ -30,7 +30,10 @@ internal partial class GridOverlayWindow : Window
 
         _monitor = monitor;
         // Auto-transpose for portrait monitors (matches WindowGrid 1.3.1.0 behavior).
-        bool portrait = monitor.PhysicalBounds.Height > monitor.PhysicalBounds.Width;
+        // Uses WorkArea so a side-mounted taskbar that flips the available
+        // ratio is what we react to, not the monitor's physical orientation.
+        var wa = monitor.WorkArea;
+        bool portrait = wa.Height > wa.Width;
         _cols = portrait ? rows : cols;
         _rows = portrait ? cols : rows;
 
@@ -131,7 +134,10 @@ internal partial class GridOverlayWindow : Window
         var hwnd = new WindowInteropHelper(this).Handle;
         if (hwnd == IntPtr.Zero) return;
 
-        var b = _monitor.PhysicalBounds;
+        // Cover the WorkArea, not the full monitor: keeps the grid out
+        // from under the taskbar / appbars so snapped windows can't end
+        // up tucked behind them.
+        var b = _monitor.WorkArea;
 
         // Position via SetWindowPos in physical pixels - bypasses WPF's DPI-aware
         // top-level coordinate translation, which is otherwise subtly wrong on
@@ -145,14 +151,15 @@ internal partial class GridOverlayWindow : Window
 
     /// <summary>
     /// Map a physical screen pixel point to a grid cell on this monitor.
-    /// Returns null if the point is outside this monitor.
+    /// Returns null only if this overlay isn't the right monitor for
+    /// the cursor; a cursor inside the monitor but over the taskbar
+    /// clamps to the closest edge cell so the gesture stays usable.
     /// </summary>
     public (int col, int row)? CellFromPhysical(int x, int y)
     {
-        var b = _monitor.PhysicalBounds;
-        if (x < b.Left || x >= b.Right || y < b.Top || y >= b.Bottom)
-            return null;
+        if (!_monitor.Contains(x, y)) return null;
 
+        var b = _monitor.WorkArea;
         double fx = (x - b.Left) / (double)b.Width;
         double fy = (y - b.Top) / (double)b.Height;
 
@@ -171,7 +178,7 @@ internal partial class GridOverlayWindow : Window
         int r1 = Math.Min(a.row, b.row);
         int r2 = Math.Max(a.row, b.row);
 
-        var bounds = _monitor.PhysicalBounds;
+        var bounds = _monitor.WorkArea;
         double cw = bounds.Width / (double)_cols;
         double rh = bounds.Height / (double)_rows;
 
@@ -221,7 +228,8 @@ internal partial class GridOverlayWindow : Window
     /// <summary>
     /// Position the free-resize preview rectangle from physical screen
     /// coordinates. Converts to DIP coords inside the window using the
-    /// monitor's effective DPI.
+    /// monitor's effective DPI. The window itself is anchored to
+    /// WorkArea, so canvas (0,0) = WorkArea top-left in physical pixels.
     /// </summary>
     public void SetFreePreview(int physStartX, int physStartY, int physEndX, int physEndY)
     {
@@ -230,7 +238,7 @@ internal partial class GridOverlayWindow : Window
         int right = Math.Max(physStartX, physEndX);
         int bottom = Math.Max(physStartY, physEndY);
 
-        var b = _monitor.PhysicalBounds;
+        var b = _monitor.WorkArea;
         double sx = _monitor.ScaleX;
         double sy = _monitor.ScaleY;
 
