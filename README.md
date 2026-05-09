@@ -14,7 +14,19 @@ You hold left-click on a window's title bar like you're about to drag it. While 
 
 That's the whole thing. Point at the size and shape you want, let go, done.
 
+![Grid snap demo](docs/grid-snap.gif)
+
 Via this resizing method, you can also use a free resizing mode that lets you dynamically resize the window to any dimmension you want - the grid is not required!
+
+![Free resize demo](docs/free-resize.gif)
+
+You can also flip from the grid into free-resize mid-gesture by tapping right-click again:
+
+![Grid to free resize demo](docs/grid-to-free-resize.gif)
+
+The grid appears on every monitor, so you can snap windows across your whole setup without breaking the gesture:
+
+![Multi-window grid demo](docs/multi-window.gif)
 
 ## What's different from the original
 
