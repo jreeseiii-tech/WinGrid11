@@ -12,21 +12,23 @@ This is a (largely) vibe coded app based on the old WindowGrid functions that do
 
 You hold left-click on a window's title bar like you're about to drag it. While still holding, you tap right-click. A grid pops up over every monitor. You drag from one corner of the rectangle you want to the other corner. You release left-click. The window snaps to that rectangle.
 
-That's the whole thing. Point at the size and shape you want, let go, done.
+That's the whole thing. Point at the size and shape you want, let go, done. The grid appears on every monitor, so you can snap windows across your whole setup without breaking the gesture.
 
-![Grid snap demo](docs/grid-snap.gif)
+<table>
+  <tr>
+    <td width="50%"><img src="docs/grid-snap.gif" alt="Grid snap demo" /></td>
+    <td width="50%"><img src="docs/multi-window.gif" alt="Multi-window grid demo" /></td>
+  </tr>
+</table>
 
-Via this resizing method, you can also use a free resizing mode that lets you dynamically resize the window to any dimmension you want - the grid is not required!
+Via this resizing method, you can also use a free resizing mode that lets you dynamically resize the window to any dimmension you want - the grid is not required! You can flip from the grid into free-resize mid-gesture by tapping right-click again.
 
-![Free resize demo](docs/free-resize.gif)
-
-You can also flip from the grid into free-resize mid-gesture by tapping right-click again:
-
-![Grid to free resize demo](docs/grid-to-free-resize.gif)
-
-The grid appears on every monitor, so you can snap windows across your whole setup without breaking the gesture:
-
-![Multi-window grid demo](docs/multi-window.gif)
+<table>
+  <tr>
+    <td width="50%"><img src="docs/free-resize.gif" alt="Free resize demo" /></td>
+    <td width="50%"><img src="docs/grid-to-free-resize.gif" alt="Grid to free resize demo" /></td>
+  </tr>
+</table>
 
 ## What's different from the original
 
