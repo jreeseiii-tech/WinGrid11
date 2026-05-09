@@ -1,6 +1,6 @@
 # WinGrid11
 
-Dynamic grid-based window snapping for Windows 11. Spiritual successor to [WindowGrid](http://windowgrid.net).
+Dynamic grid-based window manager for Windows 11. Spiritual successor to [WindowGrid](http://windowgrid.net).
 
 > Heavily inspired by the great work of Joshua Wilding. The original WindowGrid was an amazing tool that changed how I use Windows. Sadly, it is pretty inconsistent on Windows 11 and with newer apps. This tool aims to address that. Check out the original WindowGrid at [windowgrid.net](http://windowgrid.net).
 
