@@ -154,7 +154,7 @@
                        TextWrapping="Wrap" />
         </StackPanel>
 
-        <!-- Body: two columns of sections + credits row spanning underneath. -->
+        <!-- Body: two columns of sections. -->
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -162,13 +162,9 @@
                     <ColumnDefinition Width="14" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
 
-                <!-- Left column: Behavior + Grid -->
-                <StackPanel Grid.Column="0" Grid.Row="0">
+                <!-- Left column: Behavior + Grid + per-monitor -->
+                <StackPanel Grid.Column="0">
 
                 <!-- Behavior section -->
                 <Border Style="{StaticResource SectionStyle}">
@@ -205,6 +201,8 @@
                 <Border Style="{StaticResource SectionStyle}">
                     <StackPanel>
                         <TextBlock Text="GRID" Style="{StaticResource HeaderStyle}" />
+                        <TextBlock Text="Default size, used for any monitor without an override below."
+                                   Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap" />
 
                         <Grid Margin="0,4">
                             <Grid.ColumnDefinitions>
@@ -246,10 +244,20 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Per-monitor overrides -->
+                <Border Style="{StaticResource SectionStyle}">
+                    <StackPanel>
+                        <TextBlock Text="PER-MONITOR GRID" Style="{StaticResource HeaderStyle}" />
+                        <TextBlock Text="Override the default grid size for individual monitors. Click Reset on a monitor to fall back to the default."
+                                   Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
+                        <StackPanel x:Name="MonitorsList" />
+                    </StackPanel>
+                </Border>
+
                 </StackPanel>
 
-                <!-- Right column: Appearance + System -->
-                <StackPanel Grid.Column="2" Grid.Row="0">
+                <!-- Right column: Appearance + System + How to use + Credits -->
+                <StackPanel Grid.Column="2">
 
                 <!-- Appearance section -->
                 <Border Style="{StaticResource SectionStyle}">
@@ -321,10 +329,8 @@
                     </StackPanel>
                 </Border>
 
-                </StackPanel>
-
-                <!-- How to use - bottom-left column. -->
-                <Border Grid.Column="0" Grid.Row="1" Style="{StaticResource SectionStyle}">
+                <!-- How to use -->
+                <Border Style="{StaticResource SectionStyle}">
                     <StackPanel>
                         <TextBlock Text="HOW TO USE" Style="{StaticResource HeaderStyle}" />
                         <TextBlock TextWrapping="Wrap" LineHeight="20">
@@ -332,7 +338,7 @@
                             <Run Text=" Hold left-click on a window's title bar and start dragging." />
                             <LineBreak />
                             <Run FontWeight="SemiBold" Text="2." />
-                            <Run Text=" While still holding, tap right-click. The grid appears on every monitor." />
+                            <Run Text=" While still holding, tap right-click. The grid appears on the monitor your cursor is on." />
                             <LineBreak />
                             <Run FontWeight="SemiBold" Text="3." />
                             <Run Text=" Drag to the opposite corner of the rectangle you want." />
@@ -346,8 +352,8 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Credits - bottom-right column. -->
-                <Border Grid.Column="2" Grid.Row="1" Style="{StaticResource SectionStyle}">
+                <!-- Credits -->
+                <Border Style="{StaticResource SectionStyle}">
                     <StackPanel>
                         <TextBlock Text="CREDITS" Style="{StaticResource HeaderStyle}" />
                         <TextBlock TextWrapping="Wrap" LineHeight="20">
@@ -359,6 +365,8 @@
                         </TextBlock>
                     </StackPanel>
                 </Border>
+
+                </StackPanel>
             </Grid>
         </ScrollViewer>
     </DockPanel>

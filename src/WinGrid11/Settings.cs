@@ -3,10 +3,25 @@ using System.Text.Json;
 
 namespace WinGrid11;
 
+internal sealed class MonitorGridSize
+{
+    public int Columns { get; set; }
+    public int Rows { get; set; }
+}
+
 internal sealed class Settings
 {
     public int Columns { get; set; } = 12;
     public int Rows { get; set; } = 6;
+
+    /// <summary>
+    /// Per-monitor grid size overrides keyed by the monitor's stable
+    /// device ID (EDID-derived path from EnumDisplayDevices). When a
+    /// monitor has an entry here, its overlay uses those columns/rows
+    /// instead of the global default above. Monitors not in this
+    /// dictionary fall back to the default.
+    /// </summary>
+    public Dictionary<string, MonitorGridSize> MonitorOverrides { get; set; } = new();
     public string CellColor { get; set; } = "#4080FF";
     public string HighlightColor { get; set; } = "#40C0FF";
     public string StrokeColor { get; set; } = "#80C0FF";
@@ -105,6 +120,12 @@ internal sealed class Settings
     {
         Columns = Math.Clamp(Columns, 1, 64);
         Rows = Math.Clamp(Rows, 1, 64);
+        MonitorOverrides ??= new Dictionary<string, MonitorGridSize>();
+        foreach (var (_, ov) in MonitorOverrides)
+        {
+            ov.Columns = Math.Clamp(ov.Columns, 1, 64);
+            ov.Rows = Math.Clamp(ov.Rows, 1, 64);
+        }
         return this;
     }
 }

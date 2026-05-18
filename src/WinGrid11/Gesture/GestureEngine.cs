@@ -271,7 +271,7 @@ internal sealed class GestureEngine : IDisposable
             // the user's physical LBUTTONUP at gesture end.
             CancelDragOperation();
 
-            _overlays.Show(_settings.BlockBackgroundInteraction);
+            _overlays.ShowOnly(overlay, _settings.BlockBackgroundInteraction);
             if (_freeMode)
             {
                 overlay.EnterFreeMode();
@@ -302,21 +302,19 @@ internal sealed class GestureEngine : IDisposable
 
     private void HandleGridMove(int x, int y)
     {
-        var overlay = _overlays.OverlayForPoint(x, y);
+        var overlay = _activeOverlay;
         if (overlay is null) return;
 
-        if (!ReferenceEquals(overlay, _activeOverlay))
-        {
-            _activeOverlay?.Clear();
-            _activeOverlay = overlay;
-            overlay.EnterGridMode();
-            // Re-anchor the start cell on the new monitor - the gesture
-            // logically restarts when the user crosses a monitor boundary.
-            _startCell = overlay.CellFromPhysical(x, y) ?? _startCell;
-            _lastResizedCell = null;
-        }
+        // Lock the gesture to the monitor where it started. The cursor
+        // can wander onto other monitors, but the end cell is computed
+        // against the active monitor's work area only - clamped to its
+        // closest edge cell. No overlay swapping, no half-resolved
+        // selections across screens.
+        var b = overlay.Monitor.WorkArea;
+        int cx = Math.Clamp(x, b.Left, b.Right - 1);
+        int cy = Math.Clamp(y, b.Top, b.Bottom - 1);
 
-        var endCell = overlay.CellFromPhysical(x, y);
+        var endCell = overlay.CellFromPhysical(cx, cy);
         if (endCell is null) return;
         _endCell = endCell.Value;
 
@@ -359,28 +357,13 @@ internal sealed class GestureEngine : IDisposable
 
     private void HandleFreeMove(int x, int y)
     {
-        // Re-anchor on monitor crossing - same logic as grid mode: the
-        // gesture restarts on the new monitor with its start at the
-        // current cursor position. Without this, the preview rect would
-        // remain stuck on the old monitor while the cursor is elsewhere.
-        var newOverlay = _overlays.OverlayForPoint(x, y);
-        if (newOverlay is not null && !ReferenceEquals(newOverlay, _activeOverlay))
-        {
-            _activeOverlay?.Clear();
-            _activeOverlay = newOverlay;
-            newOverlay.EnterFreeMode();
-            // Anchor at the cursor clamped into the new monitor's work
-            // area so a re-anchor over a taskbar maps to the edge.
-            var nwa = newOverlay.Monitor.WorkArea;
-            _freeStart = (Math.Clamp(x, nwa.Left, nwa.Right - 1),
-                          Math.Clamp(y, nwa.Top, nwa.Bottom - 1));
-        }
-
         var overlay = _activeOverlay;
         if (overlay is null) return;
-        // Clamp to WorkArea, not PhysicalBounds, so the free-resize
-        // rect can't extend behind the taskbar even when the cursor
-        // wanders into it.
+        // Lock the gesture to the starting monitor. Cursor wandering
+        // onto another screen clamps the free-resize end point to the
+        // active monitor's work area edge - the rect can't escape to a
+        // different display. Same reasoning as HandleGridMove: cross-
+        // monitor selections produced inconsistent commits.
         var b = overlay.Monitor.WorkArea;
         int cx = Math.Clamp(x, b.Left, b.Right - 1);
         int cy = Math.Clamp(y, b.Top, b.Bottom - 1);
@@ -461,7 +444,14 @@ internal sealed class GestureEngine : IDisposable
             var overlay = _activeOverlay;
             if (overlay is not null)
             {
-                var endCell = overlay.CellFromPhysical(x, y) ?? _endCell;
+                // Clamp the release point into the active monitor's work
+                // area so a release on a different screen settles on the
+                // closest edge cell instead of falling back to the last
+                // in-monitor cell.
+                var b = overlay.Monitor.WorkArea;
+                int cx = Math.Clamp(x, b.Left, b.Right - 1);
+                int cy = Math.Clamp(y, b.Top, b.Bottom - 1);
+                var endCell = overlay.CellFromPhysical(cx, cy) ?? _endCell;
                 _endCell = endCell;
                 overlay.SetSelection(_startCell, _endCell);
             }

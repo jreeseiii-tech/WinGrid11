@@ -26,19 +26,37 @@ internal sealed class OverlayManager : IDisposable
             CreateOverlays();
     }
 
-    public void Show(bool blockBackgroundInteraction)
+    /// <summary>
+    /// Show only the overlay for the target monitor; hide every other one.
+    /// The grid follows the cursor across monitors (driven by the gesture
+    /// engine), but only the monitor the cursor is currently on shows
+    /// the grid - the old behaviour of lighting up every monitor was
+    /// noisy on multi-display setups.
+    /// </summary>
+    public void ShowOnly(GridOverlayWindow target, bool blockBackgroundInteraction)
     {
-        if (_overlays.Count == 0)
-            CreateOverlays();
+        if (_overlays.Count == 0) CreateOverlays();
 
         foreach (var w in _overlays)
         {
-            w.Clear();
-            // SetClickThrough must be called after the HWND exists - show
-            // first if needed, then toggle. WPF's Show() pumps SourceInitialized
-            // synchronously so the HWND is available right after.
-            if (!w.IsVisible) w.Show();
-            w.SetClickThrough(!blockBackgroundInteraction);
+            if (ReferenceEquals(w, target))
+            {
+                w.Clear();
+                // SetClickThrough must run after the HWND exists - show
+                // first if needed, then toggle. WPF's Show() pumps
+                // SourceInitialized synchronously so the HWND is
+                // available immediately after.
+                if (!w.IsVisible) w.Show();
+                w.SetClickThrough(!blockBackgroundInteraction);
+            }
+            else if (w.IsVisible)
+            {
+                w.Clear();
+                // Restore click-through before hiding so a stale overlay
+                // can't briefly intercept input during the hide animation.
+                w.SetClickThrough(true);
+                w.Hide();
+            }
         }
     }
 
@@ -71,7 +89,17 @@ internal sealed class OverlayManager : IDisposable
 
         foreach (var mon in MonitorService.Enumerate())
         {
-            var w = new GridOverlayWindow(mon, _settings.Columns, _settings.Rows, cellColor, hiColor, strokeColor);
+            // Per-monitor override takes precedence over the global
+            // default. Missing key -> use defaults.
+            int cols = _settings.Columns;
+            int rows = _settings.Rows;
+            if (_settings.MonitorOverrides.TryGetValue(mon.DeviceId, out var ov))
+            {
+                cols = ov.Columns;
+                rows = ov.Rows;
+            }
+
+            var w = new GridOverlayWindow(mon, cols, rows, cellColor, hiColor, strokeColor);
             _overlays.Add(w);
         }
     }

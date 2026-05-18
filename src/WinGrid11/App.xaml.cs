@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Security.Principal;
 using System.Windows;
 using System.Windows.Forms;
+using Microsoft.Win32;
 using WinGrid11.Gesture;
 using WinGrid11.Input;
 using WinGrid11.Overlay;
@@ -58,6 +59,12 @@ public partial class App : Application
 
         _mouseHook.Install();
         _dragWatcher.Start();
+
+        // Pick up monitor hot-plug / unplug / rearrange / DPI changes
+        // without requiring a full app restart. Fires on its own thread,
+        // so the handler marshals back to the dispatcher before touching
+        // any WPF state.
+        SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
 
         // Listen for "second-instance launched" pings from the named
         // pipe and pop the settings window in response. Marshal off
@@ -244,8 +251,22 @@ public partial class App : Application
         _settingsWindow.Show();
     }
 
+    private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            // Reset any in-flight gesture before rebuilding overlays - the
+            // engine holds a reference to one of the overlays we're about
+            // to close, and the target window may no longer be on a valid
+            // monitor after the rearrangement.
+            _engine?.Reset();
+            _overlayManager?.Refresh();
+        });
+    }
+
     private void OnExit(object sender, ExitEventArgs e)
     {
+        SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         if (_tray is not null)
         {
             // NotifyIcon doesn't dispose the assigned Icon for us;

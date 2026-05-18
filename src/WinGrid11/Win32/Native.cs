@@ -42,6 +42,21 @@ internal static class Native
         public string szDevice;
     }
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct DISPLAY_DEVICE
+    {
+        public int cb;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string DeviceName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string DeviceString;
+        public uint StateFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string DeviceID;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string DeviceKey;
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct MSLLHOOKSTRUCT
     {
@@ -156,6 +171,12 @@ internal static class Native
         MDT_EFFECTIVE_DPI = 0,
     }
 
+    // EnumDisplayDevices: asks for the monitor-instance device path
+    // (\\?\DISPLAY#...) rather than the legacy interface name. The
+    // returned DeviceID is stable per physical monitor across reconnects,
+    // making it a reliable key for per-monitor settings.
+    public const uint EDD_GET_DEVICE_INTERFACE_NAME = 0x00000001;
+
     // SendInput
     public const uint INPUT_MOUSE = 0;
     public const uint INPUT_KEYBOARD = 1;
@@ -262,6 +283,14 @@ internal static class Native
 
     [DllImport("shcore.dll")]
     public static extern int GetDpiForMonitor(IntPtr hmonitor, MONITOR_DPI_TYPE dpiType, out uint dpiX, out uint dpiY);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "EnumDisplayDevicesW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool EnumDisplayDevices(
+        string? lpDevice,
+        uint iDevNum,
+        ref DISPLAY_DEVICE lpDisplayDevice,
+        uint dwFlags);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW", SetLastError = true)]
     public static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);

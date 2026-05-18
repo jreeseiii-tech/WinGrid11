@@ -54,6 +54,16 @@ internal partial class GridOverlayWindow : Window
 
         SourceInitialized += OnSourceInitialized;
         Loaded += (_, _) => PositionForMonitor();
+
+        // When the window crosses a DPI boundary (e.g. moves from a 150%
+        // monitor to a 100% one), WPF processes WM_DPICHANGED and applies
+        // the OS-suggested rect which preserves the window's visual size
+        // across the change - so the layered overlay ends up sized
+        // 96/144 = 2/3 of the target monitor's work area instead of
+        // filling it. Re-apply our intended physical-pixel rect after
+        // WPF has updated its internal DPI scaling. Dispatched so it
+        // runs after WPF's own WM_DPICHANGED handling completes.
+        DpiChanged += (_, _) => Dispatcher.BeginInvoke(new Action(PositionForMonitor));
     }
 
     public int Cols => _cols;
